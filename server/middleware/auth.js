@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
+// Base protection middleware - verifies JWT token
 const protect = async (req, res, next) => {
   let token;
   
@@ -30,4 +31,22 @@ const protect = async (req, res, next) => {
   }
 };
 
-export { protect };
+// Admin role check middleware
+const admin = (req, res, next) => {
+  if (req.user && req.user.role === 'admin') {
+    next();
+  } else {
+    res.status(403).json({ message: 'Not authorized as admin' });
+  }
+};
+
+// Agent role check middleware
+const agent = (req, res, next) => {
+  if (req.user && (req.user.role === 'agent' || req.user.role === 'admin')) {
+    next();
+  } else {
+    res.status(403).json({ message: 'Not authorized as agent' });
+  }
+};
+
+export { protect, admin, agent };
