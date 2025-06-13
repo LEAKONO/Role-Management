@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import ticketService from '../../services/tickets';
+import { useAuth } from "../contexts/AuthContext"; // ✅ correct
+import ticketService from '../services/tickets';
 import StatsCard from '../shared/StatsCard';
 import { ChartBarIcon, TicketIcon, UserIcon } from '@heroicons/react/24/outline';
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');

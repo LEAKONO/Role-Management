@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import ticketService from '../services/tickets';
-import TicketList from '../components/tickets/TicketList';
-import TicketForm from '../components/tickets/TicketForm';
+import TicketList from "../tickets/TicketList";
+import TicketForm from "../tickets/TicketForm";
 import { PlusIcon } from '@heroicons/react/24/outline';
 
 const Tickets = () => {

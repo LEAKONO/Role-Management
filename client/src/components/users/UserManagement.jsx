@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import userService from '../../services/users';
+import { useAuth } from "../contexts/AuthContext"; // ✅ correct
+import userService from '../services/users';
 import UserCard from './UserCard';
 
 const UserManagement = () => {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import ticketService from '../../services/tickets';
+import { useAuth } from '../contexts/AuthContext';
+import ticketService from '../services/tickets';
 
 const TicketForm = ({ onSuccess }) => {
   const { user } = useAuth();

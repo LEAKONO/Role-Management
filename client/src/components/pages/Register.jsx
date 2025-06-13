@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import RegisterForm from '../components/auth/RegisterForm';
+import RegisterForm from '../auth/RegisterForm';
 
 const Register = () => {
   const { register } = useAuth();

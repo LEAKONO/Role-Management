@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import authService from '../services/auth';
 
 const AuthContext = createContext();
@@ -9,6 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Initialize user from localStorage
   useEffect(() => {
@@ -16,8 +17,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const storedUser = JSON.parse(localStorage.getItem('user'));
         
-        if (storedUser && storedUser.token) {
-          // Verify token with backend
+        if (storedUser?.token) {
           const userData = await authService.getProfile(storedUser.token);
           setUser({ ...storedUser, ...userData });
         }
@@ -31,22 +31,26 @@ export const AuthProvider = ({ children }) => {
     initializeAuth();
   }, []);
 
-  // Login user
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!loading && !user && location.pathname !== '/login' && location.pathname !== '/register') {
+      navigate('/login', { state: { from: location }, replace: true });
+    }
+  }, [user, loading, navigate, location]);
+
   const login = async (credentials) => {
     try {
       setLoading(true);
       const userData = await authService.login(credentials);
+      localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
       setError(null);
       
-      // Redirect based on role
-      if (userData.role === 'admin') {
-        navigate('/admin/dashboard');
-      } else if (userData.role === 'agent') {
-        navigate('/agent/dashboard');
-      } else {
-        navigate('/dashboard');
-      }
+      // Redirect to intended page or based on role
+      const from = location.state?.from?.pathname || 
+                 (userData.role === 'admin' ? '/admin/dashboard' :
+                  userData.role === 'agent' ? '/agent/dashboard' : '/dashboard');
+      navigate(from, { replace: true });
       
       return userData;
     } catch (err) {
@@ -57,14 +61,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Register user
   const register = async (userData) => {
     try {
       setLoading(true);
       const registeredUser = await authService.register(userData);
+      localStorage.setItem('user', JSON.stringify(registeredUser));
       setUser(registeredUser);
       setError(null);
-      navigate('/dashboard');
+      navigate(registeredUser.role === 'admin' ? '/admin/dashboard' : '/dashboard');
       return registeredUser;
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Registration failed');
@@ -74,18 +78,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Logout user
   const logout = () => {
     authService.logout();
+    localStorage.removeItem('user');
     setUser(null);
     navigate('/login');
   };
 
-  // Update user profile
   const updateProfile = async (profileData) => {
     try {
       setLoading(true);
       const updatedUser = await authService.updateProfile(profileData, user.token);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
       setUser(updatedUser);
       setError(null);
       return updatedUser;
@@ -97,27 +101,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Check if user has specific role
-  const hasRole = (requiredRole) => {
-    return user?.role === requiredRole;
-  };
-
-  // Check if user has at least one of the required roles
-  const hasAnyRole = (...roles) => {
-    return roles.includes(user?.role);
-  };
-
   const value = {
     user,
     loading,
     error,
     isAuthenticated: !!user,
+    isAdmin: user?.role === 'admin',
+    isAgent: user?.role === 'agent',
     login,
     register,
     logout,
     updateProfile,
-    hasRole,
-    hasAnyRole,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

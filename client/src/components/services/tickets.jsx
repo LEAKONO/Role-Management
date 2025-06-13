@@ -1,8 +1,7 @@
 import axios from 'axios';
 
-const API_URL = '/api/tickets';
+const API_URL = 'http://localhost:5000/api/tickets';
 
-// Create new ticket
 const createTicket = async (ticketData, token) => {
   const config = {
     headers: {
@@ -14,7 +13,6 @@ const createTicket = async (ticketData, token) => {
   return response.data;
 };
 
-// Get all tickets
 const getTickets = async (token) => {
   const config = {
     headers: {
@@ -26,7 +24,6 @@ const getTickets = async (token) => {
   return response.data;
 };
 
-// Get ticket by ID
 const getTicketById = async (ticketId, token) => {
   const config = {
     headers: {
@@ -38,7 +35,6 @@ const getTicketById = async (ticketId, token) => {
   return response.data;
 };
 
-// Update ticket
 const updateTicket = async (ticketData, token) => {
   const config = {
     headers: {

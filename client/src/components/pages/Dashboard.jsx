@@ -1,7 +1,7 @@
 import { useAuth } from '../contexts/AuthContext';
-import AdminDashboard from '../components/dashboard/AdminDashboard';
-import AgentDashboard from '../components/dashboard/AgentDashboard';
-import UserDashboard from '../components/dashboard/UserDashboard';
+import AdminDashboard from '../dashboard/AdminDashboard';  
+import AgentDashboard from '../dashboard/AgentDashboard'; 
+import UserDashboard from '../dashboard/UserDashboard';   
 
 const Dashboard = () => {
   const { user } = useAuth();

@@ -1,15 +1,21 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth, useTheme } from '../../contexts';
-import { MoonIcon, SunIcon, UserCircleIcon, LogoutIcon } from '@heroicons/react/outline';
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { useTheme } from "../contexts/ThemeContext";
+import {
+  MoonIcon,
+  SunIcon,
+  UserCircleIcon,
+  ArrowLeftOnRectangleIcon,
+} from "@heroicons/react/24/outline";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { darkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
@@ -28,7 +34,7 @@ const Navbar = () => {
                 >
                   Dashboard
                 </Link>
-                {user?.role === 'admin' && (
+                {user?.role === "admin" && (
                   <Link
                     to="/admin/users"
                     className="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition"
@@ -51,7 +57,7 @@ const Navbar = () => {
               className="p-2 rounded-full hover:bg-indigo-700 transition"
               aria-label="Toggle theme"
             >
-              {theme === 'dark' ? (
+              {darkMode ? (
                 <SunIcon className="h-5 w-5" />
               ) : (
                 <MoonIcon className="h-5 w-5" />
@@ -70,16 +76,24 @@ const Navbar = () => {
                   className="p-2 rounded-full hover:bg-indigo-700 transition"
                   aria-label="Logout"
                 >
-                  <LogoutIcon className="h-5 w-5" />
+                  <ArrowLeftOnRectangleIcon className="h-5 w-5" />
                 </button>
               </div>
             ) : (
-              <Link
-                to="/login"
-                className="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition"
-              >
-                Login
-              </Link>
+              <div className="flex space-x-2">
+                <Link
+                  to="/login"
+                  className="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition"
+                >
+                  Sign Up
+                </Link>
+              </div>
             )}
           </div>
         </div>
