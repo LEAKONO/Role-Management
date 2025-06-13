@@ -5,7 +5,6 @@ const ThemeContext = createContext();
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState('light');
 
-  // Initialize theme from localStorage or prefer-color-scheme
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -17,7 +16,6 @@ export const ThemeProvider = ({ children }) => {
     }
   }, []);
 
-  // Apply theme class to body
   useEffect(() => {
     document.body.className = theme;
     localStorage.setItem('theme', theme);

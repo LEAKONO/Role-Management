@@ -11,7 +11,6 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Initialize user from localStorage
   useEffect(() => {
     const initializeAuth = async () => {
       try {
@@ -31,9 +30,8 @@ export const AuthProvider = ({ children }) => {
     initializeAuth();
   }, []);
 
-  // Redirect if not authenticated
   useEffect(() => {
-    if (!loading && !user && location.pathname !== '/login' && location.pathname !== '/register') {
+    if (!loading && !user && !['/login', '/register'].includes(location.pathname)) {
       navigate('/login', { state: { from: location }, replace: true });
     }
   }, [user, loading, navigate, location]);
@@ -46,10 +44,7 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
       setError(null);
       
-      // Redirect to intended page or based on role
-      const from = location.state?.from?.pathname || 
-                 (userData.role === 'admin' ? '/admin/dashboard' :
-                  userData.role === 'agent' ? '/agent/dashboard' : '/dashboard');
+      const from = location.state?.from?.pathname || getDashboardPath(userData.role);
       navigate(from, { replace: true });
       
       return userData;
@@ -64,11 +59,19 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       setLoading(true);
+      
+      // Validate role before registration
+      const validRoles = ['user', 'agent']; // Add 'admin' if needed
+      if (!validRoles.includes(userData.role)) {
+        throw new Error('Invalid role specified');
+      }
+
       const registeredUser = await authService.register(userData);
       localStorage.setItem('user', JSON.stringify(registeredUser));
       setUser(registeredUser);
       setError(null);
-      navigate(registeredUser.role === 'admin' ? '/admin/dashboard' : '/dashboard');
+      
+      navigate(getDashboardPath(registeredUser.role));
       return registeredUser;
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Registration failed');
@@ -101,6 +104,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const getDashboardPath = (role) => {
+    switch(role) {
+      case 'admin': return '/admin/dashboard';
+      case 'agent': return '/agent/dashboard';
+      default: return '/dashboard';
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -108,6 +119,7 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
     isAgent: user?.role === 'agent',
+    isUser: user?.role === 'user',
     login,
     register,
     logout,

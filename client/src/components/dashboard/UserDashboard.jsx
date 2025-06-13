@@ -1,35 +1,63 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from "../contexts/AuthContext"; // ✅ correct
+import { useAuth } from "../contexts/AuthContext";
 import ticketService from '../services/tickets';
 import TicketList from '../tickets/TicketList';
+import TicketForm from '../tickets/TicketForm';
+import { PlusIcon } from '@heroicons/react/24/outline';
 
 const UserDashboard = () => {
   const { user } = useAuth();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     const fetchTickets = async () => {
       try {
         const data = await ticketService.getAll(user.token);
-        setTickets(data);
+        const userTickets = data.filter(ticket => 
+          ticket.createdBy?._id === user._id
+        );
+        setTickets(userTickets);
       } catch (err) {
-        console.error(err);
+        console.error('Error fetching tickets:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTickets();
-  }, [user.token]);
+    if (user?._id) {
+      fetchTickets();
+    }
+  }, [user.token, user._id]);
+
+  const handleNewTicket = (newTicket) => {
+    setTickets([newTicket, ...tickets]);
+    setShowForm(false);
+  };
 
   if (loading) return <div>Loading...</div>;
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">My Dashboard</h1>
+      
+      <button
+        onClick={() => setShowForm(!showForm)}
+        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+      >
+        <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
+        {showForm ? 'Hide Form' : 'New Ticket'}
+      </button>
+
+      {showForm && (
+        <div className="bg-white shadow rounded-lg p-4">
+          <TicketForm onSuccess={handleNewTicket} />
+        </div>
+      )}
+
       <div className="bg-white shadow rounded-lg p-4">
-        <h2 className="text-lg font-medium mb-4">My Tickets</h2>
+        <h2 className="text-lg font-medium mb-4">My Tickets ({tickets.length})</h2>
         <TicketList tickets={tickets} />
       </div>
     </div>

@@ -1,6 +1,6 @@
 import TicketCard from './TicketCard';
 
-const TicketList = ({ tickets }) => {
+const TicketList = ({ tickets, agents, currentUserId, onAssignTicket, showAssignAction }) => {
   if (tickets.length === 0) {
     return (
       <div className="text-center py-12">
@@ -12,7 +12,14 @@ const TicketList = ({ tickets }) => {
   return (
     <div className="space-y-4">
       {tickets.map(ticket => (
-        <TicketCard key={ticket._id} ticket={ticket} />
+        <TicketCard 
+          key={ticket._id} 
+          ticket={ticket} 
+          agents={agents}
+          currentUserId={currentUserId}
+          onAssignTicket={onAssignTicket}
+          showAssignAction={showAssignAction}
+        />
       ))}
     </div>
   );

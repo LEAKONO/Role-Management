@@ -44,6 +44,10 @@ const updateUser = asyncHandler(async (req, res) => {
   }
 });
 
+const getAgents = asyncHandler(async (req, res) => {
+  const agents = await User.find({ role: 'agent' }).select('-password');
+  res.json(agents);
+});
 
 const deleteUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
@@ -57,4 +61,4 @@ const deleteUser = asyncHandler(async (req, res) => {
   }
 });
 
-export { getUsers, getUserById, updateUser, deleteUser };
+export { getUsers, getUserById, updateUser, deleteUser ,getAgents};

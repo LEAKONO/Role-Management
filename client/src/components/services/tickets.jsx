@@ -2,18 +2,7 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:5000/api/tickets';
 
-const createTicket = async (ticketData, token) => {
-  const config = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
-
-  const response = await axios.post(API_URL, ticketData, config);
-  return response.data;
-};
-
-const getTickets = async (token) => {
+const getAll = async (token) => {
   const config = {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -24,7 +13,18 @@ const getTickets = async (token) => {
   return response.data;
 };
 
-const getTicketById = async (ticketId, token) => {
+const create = async (ticketData, token) => {
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+
+  const response = await axios.post(API_URL, ticketData, config);
+  return response.data;
+};
+
+const getById = async (ticketId, token) => {
   const config = {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -35,23 +35,40 @@ const getTicketById = async (ticketId, token) => {
   return response.data;
 };
 
-const updateTicket = async (ticketData, token) => {
+const update = async (ticketData, token) => {
   const config = {
     headers: {
       Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
     },
+    timeout: 10000
   };
 
-  const response = await axios.put(
-    `${API_URL}/${ticketData._id}`,
-    ticketData,
-    config
-  );
-  return response.data;
+  try {
+    const response = await axios.put(
+      `${API_URL}/${ticketData._id}`,
+      {
+        assignedTo: ticketData.assignedTo,
+        status: ticketData.status,
+        title: ticketData.title,
+        description: ticketData.description,
+        priority: ticketData.priority,
+        ...(ticketData.comment && { comment: ticketData.comment })
+      },
+      config
+    );
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(error.response.data.message || 
+                     error.response.statusText || 
+                     'Failed to update ticket');
+    }
+    throw new Error('Network error while updating ticket');
+  }
 };
 
-// Delete ticket
-const deleteTicket = async (ticketId, token) => {
+const remove = async (ticketId, token) => {
   const config = {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -63,11 +80,11 @@ const deleteTicket = async (ticketId, token) => {
 };
 
 const ticketService = {
-  createTicket,
-  getTickets,
-  getTicketById,
-  updateTicket,
-  deleteTicket,
+  getAll,
+  create,
+  getById,
+  update,
+  delete: remove,
 };
 
 export default ticketService;

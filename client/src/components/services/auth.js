@@ -45,10 +45,12 @@ const updateProfile = async (profileData, token) => {
   return response.data;
 };
 
-export default {
+const authService = {
   register,
   login,
   logout,
   getProfile,
   updateProfile,
 };
+
+export default authService;

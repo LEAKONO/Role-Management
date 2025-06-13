@@ -6,7 +6,7 @@ import {
   updateTicket,
   deleteTicket,
 } from '../controllers/ticketController.js';
-import { protect, agent } from '../middleware/auth.js';
+import { protect, adminOrAgent } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -18,7 +18,7 @@ router
 router
   .route('/:id')
   .get(protect, getTicketById)
-  .put(protect, agent, updateTicket)
-  .delete(protect, deleteTicket);
+  .put(protect, adminOrAgent, updateTicket)
+  .delete(protect, adminOrAgent, deleteTicket); // Optionally protect delete too
 
 export default router;

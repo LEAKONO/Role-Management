@@ -25,7 +25,7 @@ const TicketForm = ({ onSuccess }) => {
       const newTicket = await ticketService.create(formData, user.token);
       onSuccess(newTicket);
     } catch (err) {
-      setError(err.message || 'Failed to create ticket');
+      setError(err.response?.data?.message || 'Failed to create ticket');
     } finally {
       setLoading(false);
     }
@@ -90,6 +90,7 @@ const TicketForm = ({ onSuccess }) => {
       <div className="flex justify-end space-x-3">
         <button
           type="button"
+          onClick={() => onSuccess(null)}
           className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
         >
           Cancel
