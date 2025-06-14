@@ -6,7 +6,7 @@ import {
   updateTicket,
   deleteTicket,
 } from '../controllers/ticketController.js';
-import { protect, admin, adminOrAgent } from '../middleware/auth.js';
+import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -16,7 +16,7 @@ router.route('/')
 
 router.route('/:id')
   .get(protect, getTicketById)
-  .put(protect, adminOrAgent, updateTicket)
-  .delete(protect, admin, deleteTicket); // Changed to admin-only
+  .put(protect, updateTicket)
+  .delete(protect, deleteTicket);
 
 export default router;

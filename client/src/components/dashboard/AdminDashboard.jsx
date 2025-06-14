@@ -8,7 +8,9 @@ import {
   UserGroupIcon, 
   TicketIcon,
   PencilIcon,
-  TrashIcon
+  TrashIcon,
+  CheckIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
 
@@ -20,32 +22,45 @@ const AdminDashboard = () => {
     openTickets: 0
   });
   const [users, setUsers] = useState([]);
+  const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // User editing state
   const [editingUserId, setEditingUserId] = useState(null);
-  const [editFormData, setEditFormData] = useState({
+  const [userEditForm, setUserEditForm] = useState({
     username: '',
     email: '',
     role: 'user'
+  });
+  
+  // Ticket editing state
+  const [editingTicketId, setEditingTicketId] = useState(null);
+  const [ticketEditForm, setTicketEditForm] = useState({
+    title: '',
+    description: '',
+    status: 'open',
+    priority: 'medium'
   });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [usersData, tickets] = await Promise.all([
+        const [usersData, ticketsData] = await Promise.all([
           userService.getAll(currentUser.token),
           ticketService.getAll(currentUser.token)
         ]);
         
         setStats({
           totalUsers: usersData.length,
-          totalTickets: tickets.length,
-          openTickets: tickets.filter(t => t.status === 'open').length
+          totalTickets: ticketsData.length,
+          openTickets: ticketsData.filter(t => t.status === 'open').length
         });
         
         setUsers(usersData);
+        setTickets(ticketsData);
       } catch (err) {
-        console.error(err);
-        toast.error('Failed to fetch data');
+        console.error('Fetch error:', err);
+        toast.error(err.message || 'Failed to fetch data');
       } finally {
         setLoading(false);
       }
@@ -54,6 +69,7 @@ const AdminDashboard = () => {
     fetchData();
   }, [currentUser.token]);
 
+  // User management handlers
   const handleDeleteUser = async (userId) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
@@ -63,32 +79,24 @@ const AdminDashboard = () => {
         toast.success('User deleted successfully');
       } catch (err) {
         console.error('Delete error:', err);
-        toast.error(err.response?.data?.message || err.message || 'Failed to delete user');
+        toast.error(err.message || 'Failed to delete user');
       }
     }
   };
 
-  const handleEditClick = (user) => {
+  const handleUserEditClick = (user) => {
     setEditingUserId(user._id);
-    setEditFormData({
+    setUserEditForm({
       username: user.username,
       email: user.email,
       role: user.role
     });
   };
 
-  const handleEditFormChange = (e) => {
-    const { name, value } = e.target;
-    setEditFormData({
-      ...editFormData,
-      [name]: value
-    });
-  };
-
-  const handleEditSubmit = async (userId) => {
+  const handleUserEditSubmit = async (userId) => {
     try {
       const updatedUser = await userService.update(
-        { _id: userId, ...editFormData },
+        { _id: userId, ...userEditForm },
         currentUser.token
       );
       
@@ -100,12 +108,88 @@ const AdminDashboard = () => {
       toast.success('User updated successfully');
     } catch (err) {
       console.error(err);
-      toast.error(err.response?.data?.message || err.message || 'Failed to update user');
+      toast.error(err.message || 'Failed to update user');
+    }
+  };
+
+  // Ticket management handlers
+  const handleDeleteTicket = async (ticketId) => {
+    if (window.confirm('Are you sure you want to delete this ticket?')) {
+      try {
+        await ticketService.delete(ticketId, currentUser.token);
+        const deletedTicket = tickets.find(t => t._id === ticketId);
+        setTickets(tickets.filter(ticket => ticket._id !== ticketId));
+        setStats(prev => ({
+          ...prev,
+          totalTickets: prev.totalTickets - 1,
+          openTickets: prev.openTickets - (deletedTicket?.status === 'open' ? 1 : 0)
+        }));
+        toast.success('Ticket deleted successfully');
+      } catch (err) {
+        console.error('Delete error:', err);
+        toast.error(err.message || 'Failed to delete ticket');
+      }
+    }
+  };
+
+  const handleTicketEditClick = (ticket) => {
+    setEditingTicketId(ticket._id);
+    setTicketEditForm({
+      title: ticket.title,
+      description: ticket.description,
+      status: ticket.status,
+      priority: ticket.priority
+    });
+  };
+
+  const handleTicketEditSubmit = async (ticketId) => {
+    try {
+      const updatedTicket = await ticketService.update(
+        { _id: ticketId, ...ticketEditForm },
+        currentUser.token
+      );
+      
+      setTickets(tickets.map(ticket => 
+        ticket._id === ticketId ? updatedTicket : ticket
+      ));
+      
+      // Update stats if status changed
+      const originalTicket = tickets.find(t => t._id === ticketId);
+      if (ticketEditForm.status !== originalTicket?.status) {
+        setStats(prev => ({
+          ...prev,
+          openTickets: ticketEditForm.status === 'open' 
+            ? prev.openTickets + 1 
+            : prev.openTickets - 1
+        }));
+      }
+      
+      setEditingTicketId(null);
+      toast.success('Ticket updated successfully');
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || 'Failed to update ticket');
+    }
+  };
+
+  const handleFormChange = (e, formType) => {
+    const { name, value } = e.target;
+    if (formType === 'user') {
+      setUserEditForm({
+        ...userEditForm,
+        [name]: value
+      });
+    } else {
+      setTicketEditForm({
+        ...ticketEditForm,
+        [name]: value
+      });
     }
   };
 
   const handleCancelEdit = () => {
     setEditingUserId(null);
+    setEditingTicketId(null);
   };
 
   if (loading) return <div className="flex justify-center items-center h-64">Loading...</div>;
@@ -155,8 +239,8 @@ const AdminDashboard = () => {
                       <input
                         type="text"
                         name="username"
-                        value={editFormData.username}
-                        onChange={handleEditFormChange}
+                        value={userEditForm.username}
+                        onChange={(e) => handleFormChange(e, 'user')}
                         className="border rounded px-2 py-1 w-full"
                       />
                     ) : (
@@ -168,8 +252,8 @@ const AdminDashboard = () => {
                       <input
                         type="email"
                         name="email"
-                        value={editFormData.email}
-                        onChange={handleEditFormChange}
+                        value={userEditForm.email}
+                        onChange={(e) => handleFormChange(e, 'user')}
                         className="border rounded px-2 py-1 w-full"
                       />
                     ) : (
@@ -180,8 +264,8 @@ const AdminDashboard = () => {
                     {editingUserId === userItem._id ? (
                       <select
                         name="role"
-                        value={editFormData.role}
-                        onChange={handleEditFormChange}
+                        value={userEditForm.role}
+                        onChange={(e) => handleFormChange(e, 'user')}
                         className="border rounded px-2 py-1 w-full"
                       >
                         <option value="user">User</option>
@@ -201,7 +285,7 @@ const AdminDashboard = () => {
                     {editingUserId === userItem._id ? (
                       <div className="flex space-x-2">
                         <button
-                          onClick={() => handleEditSubmit(userItem._id)}
+                          onClick={() => handleUserEditSubmit(userItem._id)}
                           className="text-indigo-600 hover:text-indigo-900"
                         >
                           Save
@@ -216,7 +300,7 @@ const AdminDashboard = () => {
                     ) : (
                       <div className="flex space-x-2">
                         <button
-                          onClick={() => handleEditClick(userItem)}
+                          onClick={() => handleUserEditClick(userItem)}
                           className="text-indigo-600 hover:text-indigo-900"
                           title="Edit"
                         >
@@ -227,6 +311,137 @@ const AdminDashboard = () => {
                           className="text-red-600 hover:text-red-900"
                           title="Delete"
                           disabled={userItem._id === currentUser._id}
+                        >
+                          <TrashIcon className="h-5 w-5" />
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="bg-white shadow rounded-lg overflow-hidden mt-8">
+        <h2 className="text-xl font-semibold p-4 border-b">Ticket Management</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {tickets.map((ticket) => (
+                <tr key={ticket._id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {editingTicketId === ticket._id ? (
+                      <input
+                        type="text"
+                        name="title"
+                        value={ticketEditForm.title}
+                        onChange={(e) => handleFormChange(e, 'ticket')}
+                        className="border rounded px-2 py-1 w-full"
+                      />
+                    ) : (
+                      <div className="text-sm font-medium text-gray-900">{ticket.title}</div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    {editingTicketId === ticket._id ? (
+                      <textarea
+                        name="description"
+                        value={ticketEditForm.description}
+                        onChange={(e) => handleFormChange(e, 'ticket')}
+                        className="border rounded px-2 py-1 w-full"
+                        rows="3"
+                      />
+                    ) : (
+                      <div className="text-sm text-gray-500">{ticket.description}</div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {editingTicketId === ticket._id ? (
+                      <select
+                        name="status"
+                        value={ticketEditForm.status}
+                        onChange={(e) => handleFormChange(e, 'ticket')}
+                        className="border rounded px-2 py-1 w-full"
+                      >
+                        <option value="open">Open</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="closed">Closed</option>
+                      </select>
+                    ) : (
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                        ${ticket.status === 'open' ? 'bg-yellow-100 text-yellow-800' : 
+                          ticket.status === 'in-progress' ? 'bg-blue-100 text-blue-800' : 
+                          'bg-green-100 text-green-800'}`}>
+                        {ticket.status}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {editingTicketId === ticket._id ? (
+                      <select
+                        name="priority"
+                        value={ticketEditForm.priority}
+                        onChange={(e) => handleFormChange(e, 'ticket')}
+                        className="border rounded px-2 py-1 w-full"
+                      >
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                      </select>
+                    ) : (
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                        ${ticket.priority === 'urgent' ? 'bg-red-100 text-red-800' : 
+                          ticket.priority === 'high' ? 'bg-orange-100 text-orange-800' : 
+                          ticket.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' : 
+                          'bg-green-100 text-green-800'}`}>
+                        {ticket.priority}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    {editingTicketId === ticket._id ? (
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleTicketEditSubmit(ticket._id)}
+                          className="text-green-600 hover:text-green-900"
+                          title="Save"
+                        >
+                          <CheckIcon className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={handleCancelEdit}
+                          className="text-red-600 hover:text-red-900"
+                          title="Cancel"
+                        >
+                          <XMarkIcon className="h-5 w-5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleTicketEditClick(ticket)}
+                          className="text-indigo-600 hover:text-indigo-900"
+                          title="Edit"
+                        >
+                          <PencilIcon className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTicket(ticket._id)}
+                          className="text-red-600 hover:text-red-900"
+                          title="Delete"
                         >
                           <TrashIcon className="h-5 w-5" />
                         </button>
