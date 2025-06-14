@@ -7,7 +7,7 @@ const RegisterForm = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'user' // Default role
+    role: 'user' 
   });
   
   const { register, loading, error } = useAuth();

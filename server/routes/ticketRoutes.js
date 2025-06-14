@@ -6,19 +6,17 @@ import {
   updateTicket,
   deleteTicket,
 } from '../controllers/ticketController.js';
-import { protect, adminOrAgent } from '../middleware/auth.js';
+import { protect, admin, adminOrAgent } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router
-  .route('/')
+router.route('/')
   .get(protect, getTickets)
   .post(protect, createTicket);
 
-router
-  .route('/:id')
+router.route('/:id')
   .get(protect, getTicketById)
   .put(protect, adminOrAgent, updateTicket)
-  .delete(protect, adminOrAgent, deleteTicket); // Optionally protect delete too
+  .delete(protect, admin, deleteTicket); // Changed to admin-only
 
 export default router;

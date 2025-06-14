@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from "./components/contexts/AuthContext";
 import { ThemeProvider } from './components/contexts/ThemeContext';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Navbar from './components/shared/Navbar';
 import Loader from './components/shared/Loader';
 import Login from './components/pages/Login';
@@ -9,7 +11,7 @@ import Dashboard from './components/pages/Dashboard';
 import AdminDashboard from './components/dashboard/AdminDashboard';
 import AgentDashboard from './components/dashboard/AgentDashboard';
 import Tickets from './components/pages/Tickets';
-import UserManagement from "./components/users/UserManagement"; // Updated import
+import UserManagement from "./components/users/UserManagement";
 
 const AppRoutes = () => {
   const { user, loading } = useAuth();
@@ -44,6 +46,18 @@ const App = () => {
             <main className="container mx-auto py-6 px-4">
               <AppRoutes />
             </main>
+            <ToastContainer
+              position="top-right"
+              autoClose={5000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="colored"
+            />
           </div>
         </ThemeProvider>
       </AuthProvider>

@@ -2,7 +2,17 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:5000/api/users';
 
-const getUsers = async (token) => {
+const create = async (userData, token) => {
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  const response = await axios.post(API_URL, userData, config);
+  return response.data;
+};
+
+const getAll = async (token) => {
   const config = {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -17,7 +27,7 @@ const getAgents = async (token) => {
     headers: {
       Authorization: `Bearer ${token}`,
     },
-    timeout: 5000 // 5 second timeout
+    timeout: 5000
   };
   
   try {
@@ -31,7 +41,7 @@ const getAgents = async (token) => {
   }
 };
 
-const getUserById = async (userId, token) => {
+const getById = async (userId, token) => {
   const config = {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -41,7 +51,7 @@ const getUserById = async (userId, token) => {
   return response.data;
 };
 
-const updateUser = async (userData, token) => {
+const update = async (userData, token) => {
   const config = {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -51,17 +61,29 @@ const updateUser = async (userData, token) => {
   return response.data;
 };
 
-const deleteUser = async (userId, token) => {
+const remove = async (userId, token) => {
   const config = {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   };
-  const response = await axios.delete(`${API_URL}/${userId}`, config);
-  return response.data;
+  
+  try {
+    const response = await axios.delete(`${API_URL}/${userId}`, config);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(
+        error.response.data.message || 
+        error.response.statusText || 
+        'Failed to delete user'
+      );
+    }
+    throw new Error('Network error while deleting user');
+  }
 };
 
-const updateUserRole = async (userId, role, token) => {
+const updateRole = async (userId, role, token) => {
   const config = {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -72,12 +94,13 @@ const updateUserRole = async (userId, role, token) => {
 };
 
 const userService = {
-  getUsers,
+  create,
+  getAll,
   getAgents,
-  getUserById,
-  updateUser,
-  deleteUser,
-  updateUserRole,
+  getById,
+  update,
+  remove,
+  updateRole,
 };
 
 export default userService;

@@ -8,7 +8,6 @@ const getAll = async (token) => {
       Authorization: `Bearer ${token}`,
     },
   };
-
   const response = await axios.get(API_URL, config);
   return response.data;
 };
@@ -19,7 +18,6 @@ const create = async (ticketData, token) => {
       Authorization: `Bearer ${token}`,
     },
   };
-
   const response = await axios.post(API_URL, ticketData, config);
   return response.data;
 };
@@ -30,7 +28,6 @@ const getById = async (ticketId, token) => {
       Authorization: `Bearer ${token}`,
     },
   };
-
   const response = await axios.get(`${API_URL}/${ticketId}`, config);
   return response.data;
 };
@@ -74,7 +71,6 @@ const remove = async (ticketId, token) => {
       Authorization: `Bearer ${token}`,
     },
   };
-
   const response = await axios.delete(`${API_URL}/${ticketId}`, config);
   return response.data;
 };

@@ -80,18 +80,12 @@ const updateTicket = asyncHandler(async (req, res) => {
     throw new Error('Ticket not found');
   }
 
-  // Authorization Logic
   const isAdmin = req.user.role === 'admin';
   const isCreator = ticket.createdBy._id.toString() === req.user._id.toString();
   const isAssigned = ticket.assignedTo?._id.toString() === req.user._id.toString();
   const isAgent = req.user.role === 'agent';
   const isAssigning = req.body.assignedTo;
 
-  // Allow update if:
-  // - Admin
-  // - Creator
-  // - Assigned agent
-  // - Agent trying to assign/reassign (even if not currently assigned)
   const canUpdate = isAdmin || isCreator || isAssigned || (isAgent && isAssigning);
 
   if (!canUpdate) {
@@ -99,7 +93,6 @@ const updateTicket = asyncHandler(async (req, res) => {
     throw new Error('Not authorized to update this ticket');
   }
 
-  // Handle assignment changes
   if (req.body.assignedTo && (isAdmin || isAgent)) {
     ticket.assignedTo = req.body.assignedTo;
     if (req.body.status && ['open', 'in-progress'].includes(req.body.status)) {
@@ -109,7 +102,6 @@ const updateTicket = asyncHandler(async (req, res) => {
     }
   }
 
-  // Field-specific permissions
   if (isAdmin || isCreator) {
     ticket.title = req.body.title || ticket.title;
     ticket.description = req.body.description || ticket.description;
@@ -140,7 +132,7 @@ const deleteTicket = asyncHandler(async (req, res) => {
     throw new Error('Ticket not found');
   }
 
-  if (req.user.role !== 'admin' && ticket.createdBy.toString() !== req.user._id.toString()) {
+  if (req.user.role !== 'admin') {
     res.status(403);
     throw new Error('Not authorized to delete this ticket');
   }
