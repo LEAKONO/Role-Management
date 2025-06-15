@@ -72,9 +72,10 @@ git https://github.com/LEAKONO/Role-Management.git
 cd accessnest
 ```
 # Install dependencies
+```
 cd server && npm install
 cd ../client && npm install
-
+```
 # Set up environment variables (see .env.example)
 ## API Documentation
 ## API Endpoints
